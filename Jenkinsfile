@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        // Define any environment variables such as registry URL or credentials
-        DOCKER_REGISTRY = 'techwithnick'
+        DOCKER_REGISTRY = 'your-dockerhub-username'  // Your DockerHub username
+        DOCKER_IMAGE = 'my-python-app:latest'        // Image name and tag
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Clone GitHub repository using credentials
+                // Clone your GitHub repository in Jenkins workspace
                 git credentialsId: 'github-credentials', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
             }
         }
@@ -17,8 +17,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image from the Dockerfile
-                    def image = docker.build("${DOCKER_REGISTRY}/my-python-app:latest")
+                    // Build Docker image from the Dockerfile located in Jenkins workspace
+                    def image = docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}")
                 }
             }
         }
@@ -26,36 +26,28 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Run the Docker container and test if the app works
-                    docker.image("${DOCKER_REGISTRY}/my-python-app:latest").inside {
-                        // Start the Flask app inside Docker container and sleep to let it start
+                    // For Windows, you must adjust the path to Docker's expected format
+                    def dockerWorkDir = sh(script: "echo /$(echo ${WORKSPACE} | sed 's/C:/c/;s/\\\\/\\//g')", returnStdout: true).trim()
+                    
+                    // Run the container and test if the app works
+                    docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}").inside("--workdir ${dockerWorkDir}") {
+                        // Start the Flask app inside the Docker container
                         sh 'python app.py & sleep 10'
                         
-                        // Test the app with curl (checks if Flask is running on port 5000)
-                        sh 'curl -f http://localhost:5000/ || exit 1'
+                        // Check if the Flask app is accessible at localhost:5000
+                        sh 'curl -f http://localhost:5000/ || exit 1'  // Exit with error if the app is not reachable
                     }
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push Docker Image to DockerHub') {
             steps {
                 script {
-                    // Log into DockerHub and push the image
+                    // Push Docker image to DockerHub, using DockerHub credentials
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        docker.image("${DOCKER_REGISTRY}/my-python-app:latest").push()
+                        docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}").push()
                     }
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    // Example deploy step (could be running the container on a server or Kubernetes cluster)
-                    // Here we can use SSH to deploy it to a remote server or use Kubernetes, etc.
-                    echo 'Deploying the app...'
-                    // You can include steps to deploy the container on a server or start it
                 }
             }
         }
@@ -63,12 +55,10 @@ pipeline {
 
     post {
         success {
-            echo 'Project run successfully. Sending notification...'
-            // Add notification, like sending an email or Slack message here
+            echo 'Docker image successfully pushed to DockerHub.'
         }
         failure {
-            echo 'Project failed. Investigate the issue...'
-            // Handle the failure case here
+            echo 'Pipeline failed. Investigate the issue...'
         }
         always {
             echo 'Pipeline finished.'

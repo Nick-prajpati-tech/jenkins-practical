@@ -9,8 +9,8 @@ pipeline {
     stages {
         stage('Clone repository') {
             steps {
-                // Pull code from your GitHub repo
-                git branch: 'main', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
+                // Pull code from the master branch of your GitHub repo
+                git branch: 'master', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
             }
         }
 

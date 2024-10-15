@@ -22,9 +22,12 @@ pipeline {
             steps {
                 script {
                     // Run the container and test if the app runs
-                    docker.image('my-python-app:latest').inside('-w /app') {
-                        // Run the app inside the container
-                        sh 'python app.py & sleep 5'  // Run the app for 5 seconds to test
+                    docker.image('my-python-app:latest').inside {
+                        // Start the app and sleep for a while to allow it to start
+                        sh 'python app.py & sleep 10'
+                        
+                        // Check if the app is accessible
+                        sh 'curl -f http://localhost:5000/ || exit 1'  // Exit with error if the app is not reachable
                     }
                 }
             }

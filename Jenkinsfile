@@ -4,13 +4,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-username/my-python-app.git'  // Update this URL with your repo
+                // Replace with your actual repository URL
+                git credentialsId: 'github-credentials', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Build Docker image from the Dockerfile in your repository
                     docker.build('my-python-app:latest')
                 }
             }
@@ -19,7 +21,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Run the container and test if it runs
+                    // Run the container and test if the app runs
                     docker.image('my-python-app:latest').inside {
                         sh 'python app.py & sleep 5'  // Run the app for 5 seconds to test
                     }
@@ -30,6 +32,7 @@ pipeline {
         stage('Push Docker Image to Registry') {
             steps {
                 script {
+                    // Push Docker image to DockerHub, using DockerHub credentials
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
                         docker.image('my-python-app:latest').push()
                     }

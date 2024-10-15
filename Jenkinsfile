@@ -22,8 +22,8 @@ pipeline {
             steps {
                 script {
                     // Run the container and test if the app runs
-                    docker.image('my-python-app:latest').inside {
-                        // Use a command to run the app inside the container and ensure it runs in the background
+                    docker.image('my-python-app:latest').inside('-w /app') {
+                        // Run the app inside the container
                         sh 'python app.py & sleep 5'  // Run the app for 5 seconds to test
                     }
                 }

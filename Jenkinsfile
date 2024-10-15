@@ -27,7 +27,7 @@ pipeline {
             steps {
                 script {
                     // For Windows, you must adjust the path to Docker's expected format
-                    def dockerWorkDir = sh(script: "echo /$(echo ${WORKSPACE} | sed 's/C:/c/;s/\\\\/\\//g')", returnStdout: true).trim()
+                    def dockerWorkDir = sh(script: 'echo /$(echo ${WORKSPACE} | sed "s/C:/c/;s/\\\\/\\//g")', returnStdout: true).trim()
                     
                     // Run the container and test if the app works
                     docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}").inside("--workdir ${dockerWorkDir}") {

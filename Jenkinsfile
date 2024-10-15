@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'your-dockerhub-username'  // Your DockerHub username
+        DOCKER_REGISTRY = 'techwithnick'  // Your DockerHub username
         DOCKER_IMAGE = 'my-python-app:latest'        // Image name and tag
     }
 

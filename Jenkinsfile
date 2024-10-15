@@ -2,66 +2,43 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'techwithnick'  // Your DockerHub username
-        DOCKER_IMAGE = 'my-python-app:latest'        // Image name and tag
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials') // Use the ID you created in Jenkins
+        IMAGE_NAME = "techwithnick/jenkins-project" // Replace with your Docker Hub username and repository
     }
 
     stages {
-        stage('Checkout') {
+        stage('Clone repository') {
             steps {
-                // Clone your GitHub repository in Jenkins workspace
-                git credentialsId: 'github-credentials', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
+                // Pull code from your GitHub repo
+                git branch: 'main', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image from the Dockerfile located in Jenkins workspace
-                    def image = docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}")
+                    // Build Docker image using app.py and Dockerfile
+                    sh 'docker build -t $IMAGE_NAME .'
                 }
             }
         }
 
-        stage('Test') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    // For Windows, you must adjust the path to Docker's expected format
-                    def dockerWorkDir = sh(script: 'echo /$(echo ${WORKSPACE} | sed "s/C:/c/;s/\\\\/\\//g")', returnStdout: true).trim()
-                    
-                    // Run the container and test if the app works
-                    docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}").inside("--workdir ${dockerWorkDir}") {
-                        // Start the Flask app inside the Docker container
-                        sh 'python app.py & sleep 10'
-                        
-                        // Check if the Flask app is accessible at localhost:5000
-                        sh 'curl -f http://localhost:5000/ || exit 1'  // Exit with error if the app is not reachable
-                    }
-                }
-            }
-        }
+                    // Log in to Docker Hub
+                    sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
 
-        stage('Push Docker Image to DockerHub') {
-            steps {
-                script {
-                    // Push Docker image to DockerHub, using DockerHub credentials
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}").push()
-                    }
+                    // Push Docker image to Docker Hub
+                    sh 'docker push $IMAGE_NAME'
                 }
             }
         }
     }
 
     post {
-        success {
-            echo 'Docker image successfully pushed to DockerHub.'
-        }
-        failure {
-            echo 'Pipeline failed. Investigate the issue...'
-        }
         always {
-            echo 'Pipeline finished.'
+            cleanWs()
         }
     }
 }

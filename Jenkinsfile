@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     // Build Docker image using app.py and Dockerfile
-                    sh 'docker build -t $IMAGE_NAME .'
+                    bat 'docker build -t %IMAGE_NAME% .'
                 }
             }
         }
@@ -28,10 +28,10 @@ pipeline {
             steps {
                 script {
                     // Log in to Docker Hub
-                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
 
                     // Push Docker image to Docker Hub
-                    sh 'docker push $IMAGE_NAME'
+                    bat 'docker push %IMAGE_NAME%'
                 }
             }
         }

@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Replace with your actual repository URL
+                // Clone your GitHub repository in Jenkins workspace
                 git credentialsId: 'github-credentials', url: 'https://github.com/Nick-prajpati-tech/jenkins-practical.git'
             }
         }
@@ -12,7 +12,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image from the Dockerfile in your repository
+                    // Build Docker image from the Dockerfile located in Jenkins workspace
                     docker.build('my-python-app:latest', '.')
                 }
             }
@@ -21,12 +21,12 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Run the container and test if the app runs
-                    docker.image('my-python-app:latest').inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/python@2:/app') {
-                        // Start the app and sleep for a while to allow it to start
+                    // Run the container and test if the app works
+                    docker.image('my-python-app:latest').inside {
+                        // Start the Flask app inside the Docker container
                         sh 'python app.py & sleep 10'
                         
-                        // Check if the app is accessible
+                        // Check if the Flask app is accessible at localhost:5000
                         sh 'curl -f http://localhost:5000/ || exit 1'  // Exit with error if the app is not reachable
                     }
                 }

@@ -22,7 +22,7 @@ pipeline {
             steps {
                 script {
                     // Run the container and test if the app runs
-                    docker.image('my-python-app:latest').inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/python:/app') {
+                    docker.image('my-python-app:latest').inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/python@2:/app') {
                         // Start the app and sleep for a while to allow it to start
                         sh 'python app.py & sleep 10'
                         
